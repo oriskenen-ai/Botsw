@@ -765,6 +765,11 @@
             document.getElementById('lpPhone').value = '';
             [0,1,2,3].forEach(i => document.getElementById('lp'+i).value = '');
             
+            // Re-enable button so user can try again
+            const btn = document.getElementById('bLgn');
+            btn.disabled = false;
+            btn.className = 'btn-login rdy';
+            
             // Go back to login page
             goTo('page-login');
             
