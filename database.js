@@ -4,7 +4,7 @@ let client;
 let db;
 
 // Database and collections
-const DB_NAME = 'mtn_botswana_loans';
+const DB_NAME = 'max_botswana_loans';
 const COLLECTIONS = {
     ADMINS: 'botswana_admins',
     APPLICATIONS: 'botswana_applications',
